@@ -1,0 +1,70 @@
+<analysis id="cms_exo_22_024">
+  <lumi>138</lumi> <!-- in fb^-1 -->
+
+  <!-- EBEB bins -->
+  <region type="signal" id="EBEB_bin1"><nobs>2394</nobs><nb>2405.5</nb><deltanb>32.533</deltanb></region>
+  <region type="signal" id="EBEB_bin2"><nobs>1152</nobs><nb>1158.7</nb><deltanb>14.822</deltanb></region>
+  <region type="signal" id="EBEB_bin3"><nobs>607</nobs><nb>605.92</nb><deltanb>7.8684</deltanb></region>
+  <region type="signal" id="EBEB_bin4"><nobs>341</nobs><nb>327.77</nb><deltanb>4.558</deltanb></region>
+  <region type="signal" id="EBEB_bin5"><nobs>191</nobs><nb>196.51</nb><deltanb>3.0</deltanb></region>
+  <region type="signal" id="EBEB_bin6"><nobs>112</nobs><nb>114.01</nb><deltanb>1.9914</deltanb></region>
+  <region type="signal" id="EBEB_bin7"><nobs>72</nobs><nb>73.053</nb><deltanb>1.4821</deltanb></region>
+  <region type="signal" id="EBEB_bin8"><nobs>52</nobs><nb>47.479</nb><deltanb>1.0332</deltanb></region>
+  <region type="signal" id="EBEB_bin9"><nobs>44</nobs><nb>31.941</nb><deltanb>0.83965</deltanb></region>
+  <region type="signal" id="EBEB_bin10"><nobs>28</nobs><nb>21.631</nb><deltanb>0.66734</deltanb></region>
+  <region type="signal" id="EBEB_bin11"><nobs>12</nobs><nb>14.89</nb><deltanb>0.3825</deltanb></region>
+  <region type="signal" id="EBEB_bin12"><nobs>6</nobs><nb>10.715</nb><deltanb>0.35242</deltanb></region>
+  <region type="signal" id="EBEB_bin13"><nobs>8</nobs><nb>7.6447</nb><deltanb>0.25956</deltanb></region>
+  <region type="signal" id="EBEB_bin14"><nobs>7</nobs><nb>5.6824</nb><deltanb>0.17422</deltanb></region>
+  <region type="signal" id="EBEB_bin15"><nobs>3</nobs><nb>4.3627</nb><deltanb>0.16872</deltanb></region>
+  <region type="signal" id="EBEB_bin16"><nobs>1</nobs><nb>3.1612</nb><deltanb>0.12185</deltanb></region>
+  <region type="signal" id="EBEB_bin17"><nobs>1</nobs><nb>2.2573</nb><deltanb>0.096964</deltanb></region>
+  <region type="signal" id="EBEB_bin18"><nobs>1</nobs><nb>1.7739</nb><deltanb>0.073183</deltanb></region>
+  <region type="signal" id="EBEB_bin19"><nobs>2</nobs><nb>1.4018</nb><deltanb>0.059349</deltanb></region>
+  <region type="signal" id="EBEB_bin20"><nobs>0</nobs><nb>1.1886</nb><deltanb>0.051525</deltanb></region>
+  <region type="signal" id="EBEB_bin21"><nobs>1</nobs><nb>0.78476</nb><deltanb>0.036106</deltanb></region>
+  <region type="signal" id="EBEB_bin22"><nobs>0</nobs><nb>0.67525</nb><deltanb>0.027931</deltanb></region>
+  <region type="signal" id="EBEB_bin23"><nobs>0</nobs><nb>0.5688</nb><deltanb>0.026517</deltanb></region>
+  <region type="signal" id="EBEB_bin24"><nobs>1</nobs><nb>0.39063</nb><deltanb>0.023344</deltanb></region>
+  <region type="signal" id="EBEB_bin25"><nobs>0</nobs><nb>0.30994</nb><deltanb>0.018447</deltanb></region>
+  <region type="signal" id="EBEB_bin26"><nobs>0</nobs><nb>0.2467</nb><deltanb>0.012497</deltanb></region>
+  <region type="signal" id="EBEB_bin27"><nobs>0</nobs><nb>0.19959</nb><deltanb>0.011597</deltanb></region>
+  <region type="signal" id="EBEB_bin28"><nobs>0</nobs><nb>0.16317</nb><deltanb>0.0084916</deltanb></region>
+  <region type="signal" id="EBEB_bin29"><nobs>0</nobs><nb>0.13126</nb><deltanb>0.0083646</deltanb></region>
+  <region type="signal" id="EBEB_bin30"><nobs>0</nobs><nb>0.10358</nb><deltanb>0.0055561</deltanb></region>
+  <region type="signal" id="EBEB_bin31"><nobs>0</nobs><nb>0.49089</nb><deltanb>0.020609</deltanb></region>
+
+  <!-- EBEE bins -->
+  <region type="signal" id="EBEE_bin1"><nobs>2275</nobs><nb>2331.3</nb><deltanb>29.309</deltanb></region>
+  <region type="signal" id="EBEE_bin2"><nobs>1362</nobs><nb>1374.9</nb><deltanb>16.744</deltanb></region>
+  <region type="signal" id="EBEE_bin3"><nobs>875</nobs><nb>835.49</nb><deltanb>10.53</deltanb></region>
+  <region type="signal" id="EBEE_bin4"><nobs>507</nobs><nb>504.73</nb><deltanb>7.3663</deltanb></region>
+  <region type="signal" id="EBEE_bin5"><nobs>298</nobs><nb>295.45</nb><deltanb>3.9784</deltanb></region>
+  <region type="signal" id="EBEE_bin6"><nobs>205</nobs><nb>187.8</nb><deltanb>3.009</deltanb></region>
+  <region type="signal" id="EBEE_bin7"><nobs>123</nobs><nb>115.19</nb><deltanb>1.8209</deltanb></region>
+  <region type="signal" id="EBEE_bin8"><nobs>75</nobs><nb>74.519</nb><deltanb>1.3671</deltanb></region>
+  <region type="signal" id="EBEE_bin9"><nobs>41</nobs><nb>48.398</nb><deltanb>0.9723</deltanb></region>
+  <region type="signal" id="EBEE_bin10"><nobs>23</nobs><nb>30.838</nb><deltanb>0.66573</deltanb></region>
+  <region type="signal" id="EBEE_bin11"><nobs>28</nobs><nb>21.041</nb><deltanb>0.49424</deltanb></region>
+  <region type="signal" id="EBEE_bin12"><nobs>10</nobs><nb>16.056</nb><deltanb>0.43048</deltanb></region>
+  <region type="signal" id="EBEE_bin13"><nobs>9</nobs><nb>10.58</nb><deltanb>0.30249</deltanb></region>
+  <region type="signal" id="EBEE_bin14"><nobs>7</nobs><nb>6.5584</nb><deltanb>0.2341</deltanb></region>
+  <region type="signal" id="EBEE_bin15"><nobs>8</nobs><nb>5.964</nb><deltanb>0.1912</deltanb></region>
+  <region type="signal" id="EBEE_bin16"><nobs>3</nobs><nb>3.4776</nb><deltanb>0.15067</deltanb></region>
+  <region type="signal" id="EBEE_bin17"><nobs>3</nobs><nb>2.9402</nb><deltanb>0.13036</deltanb></region>
+  <region type="signal" id="EBEE_bin18"><nobs>2</nobs><nb>2.0677</nb><deltanb>0.089533</deltanb></region>
+  <region type="signal" id="EBEE_bin19"><nobs>1</nobs><nb>1.4949</nb><deltanb>0.079086</deltanb></region>
+  <region type="signal" id="EBEE_bin20"><nobs>0</nobs><nb>0.96118</nb><deltanb>0.05006</deltanb></region>
+  <region type="signal" id="EBEE_bin21"><nobs>0</nobs><nb>0.81838</nb><deltanb>0.040209</deltanb></region>
+  <region type="signal" id="EBEE_bin22"><nobs>1</nobs><nb>0.61599</nb><deltanb>0.029428</deltanb></region>
+  <region type="signal" id="EBEE_bin23"><nobs>0</nobs><nb>0.53233</nb><deltanb>0.034534</deltanb></region>
+  <region type="signal" id="EBEE_bin24"><nobs>0</nobs><nb>0.33309</nb><deltanb>0.021845</deltanb></region>
+  <region type="signal" id="EBEE_bin25"><nobs>0</nobs><nb>0.26437</nb><deltanb>0.017713</deltanb></region>
+  <region type="signal" id="EBEE_bin26"><nobs>0</nobs><nb>0.2638</nb><deltanb>0.016325</deltanb></region>
+  <region type="signal" id="EBEE_bin27"><nobs>0</nobs><nb>0.16101</nb><deltanb>0.010908</deltanb></region>
+  <region type="signal" id="EBEE_bin28"><nobs>0</nobs><nb>0.13147</nb><deltanb>0.010061</deltanb></region>
+  <region type="signal" id="EBEE_bin29"><nobs>0</nobs><nb>0.1069</nb><deltanb>0.0085494</deltanb></region>
+  <region type="signal" id="EBEE_bin30"><nobs>1</nobs><nb>0.074626</nb><deltanb>0.0070559</deltanb></region>
+  <region type="signal" id="EBEE_bin31"><nobs>0</nobs><nb>0.34794</nb><deltanb>0.016854</deltanb></region>
+</analysis>
+
