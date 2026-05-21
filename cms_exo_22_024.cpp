@@ -83,7 +83,7 @@ void cms_exo_22_024::Finalize(const SampleFormat& summary, const std::vector<Sam
 }
 
 // -----------------------------------------------------------------------
-// DeltaR helper
+// DeltaR
 // -----------------------------------------------------------------------
 double CalculateDeltaR(double eta1, double phi1, double eta2, double phi2)
 {
@@ -96,7 +96,6 @@ double CalculateDeltaR(double eta1, double phi1, double eta2, double phi2)
 
 // -----------------------------------------------------------------------
 // Photon energy correction: 0.5% scale + Gaussian smearing
-// Returns a scale factor to multiply the 4-vector by.
 // -----------------------------------------------------------------------
 double PhotonCorrectionFactor(const RecPhotonFormat* photon)
 {
@@ -112,7 +111,7 @@ double PhotonCorrectionFactor(const RecPhotonFormat* photon)
     } else if (abseta > 1.57 && abseta < 2.5) {
         smear_sigma = 0.02  + dis(gen) * 0.005;   // 2.0-2.5% EE
     } else {
-        return scale;  // gap region: scale only, no smearing
+        return scale;  // gap region
     }
 
     std::normal_distribution<> gauss(1.0, smear_sigma);
@@ -120,7 +119,7 @@ double PhotonCorrectionFactor(const RecPhotonFormat* photon)
 }
 
 // -----------------------------------------------------------------------
-// Per-photon reconstruction efficiency returned as a weight factor.
+// Per-photon reconstruction efficiency.
 // Barrel: 90%,  Endcap: 82%,  Gap/outside: 0 (photon rejected upstream).
 // -----------------------------------------------------------------------
 double RecoEfficiencyWeight(const RecPhotonFormat* photon)
@@ -128,11 +127,11 @@ double RecoEfficiencyWeight(const RecPhotonFormat* photon)
     double abseta = std::fabs(photon->eta());
     if      (abseta < 1.44)                      return 0.90;
     else if (abseta > 1.57 && abseta < 2.5)      return 0.82;
-    else                                          return 0.0;   // gap
+    else                                          return 0.0;
 }
 
 // -----------------------------------------------------------------------
-// Photon ID (paper Section 3)
+// Photon ID
 //   - H/E < 5%
 //   - Charged-hadron isolation < 5.0 GeV
 //   - Photon isolation < 2.75 GeV (EB) or < 2.00 GeV (EE)
@@ -148,7 +147,7 @@ bool ApplyPhotonID(const RecPhotonFormat& photon, bool isEB, const EventFormat& 
     if (chiso >= 5.0)
         return false;
 
-    // 3. Photon isolation: 2.75 GeV (EB) or 2.00 GeV (EE)  [paper Sec. 3]
+    // 3. Photon isolation: 2.75 GeV (EB) or 2.00 GeV (EE)
     double phiso = PHYSICS->Isol->calorimeter->sumIsolation(&photon, event.rec(), 0.3, 0.);
     if (isEB  && phiso >= 2.75) return false;
     if (!isEB && phiso >= 2.00) return false;
@@ -188,13 +187,8 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
 
     // ================================================================
     // CUT 2: pT > 125 GeV, |eta| < 2.5  (excluding gap 1.44-1.57)
-    // Apply energy correction BEFORE the pT cut so the threshold is
-    // applied consistently on corrected momenta (paper: offline pT > 125).
     // ================================================================
-    //
-    // Build (photon*, corrected_4vector) pairs for all candidates,
-    // then filter and sort by corrected pT.
-    //
+    
     struct PhotonWithCorr {
         const RecPhotonFormat* ph;
         MALorentzVector mom;   // corrected 4-vector
@@ -228,12 +222,8 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
     if (!Manager()->ApplyCut(true, "Photon pT > 125 GeV & |eta| < 2.5")) return true;
 
     // ================================================================
-    // Reconstruction efficiency: applied as an event-weight factor
-    // (product over the two leading photons, chosen after ID below).
-    // We do NOT randomly discard photons — that inflates weight variance.
-    // ================================================================
-
-    // ================================================================
+    // Reconstruction efficiency
+    // =====================================
     // CUT 3: Photon ID
     // ================================================================
     std::vector<PhotonWithCorr> idCandidates;
@@ -246,7 +236,7 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
     if (idCandidates.size() < 2) return true;
     if (!Manager()->ApplyCut(true, "Photon ID selection")) return true;
 
-    // Sort by corrected pT (descending) and pick the two leading
+    // Sort by corrected pT and pick the two leading
     std::sort(idCandidates.begin(), idCandidates.end(),
               [](const PhotonWithCorr& a, const PhotonWithCorr& b){
                   return a.corrPt > b.corrPt;
@@ -270,7 +260,7 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
     double invariantMass   = system.M();
 
     // ================================================================
-    // CUT 4: EBEB || EBEE  (gap photons already excluded above)
+    // CUT 4: EBEB || EBEE
     // ================================================================
     bool leadEB    = lead.isEB;
     bool subleadEB = sublead.isEB;
@@ -305,20 +295,19 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
     if (mass_bin > 31) mass_bin = 31;
 
     // ================================================================
-    // Fill region histograms — EBEB and EBEE are independent paths.
-    // A failed EBEB bin cut must NOT abort the EBEE evaluation.
+    // Fill region histograms
     // ================================================================
     if (passesEBEB)
     {
         std::string cut_name = "Mass bin " + std::to_string(mass_bin) + " EBEB";
-        Manager()->ApplyCut(true, cut_name);   // no early return here
+        Manager()->ApplyCut(true, cut_name);
         Manager()->FillHisto("mgg_EBEB", invariantMass);
     }
 
     if (passesEBEE)
     {
         std::string cut_name = "Mass bin " + std::to_string(mass_bin) + " EBEE";
-        Manager()->ApplyCut(true, cut_name);   // no early return here
+        Manager()->ApplyCut(true, cut_name);   
         Manager()->FillHisto("mgg_EBEE", invariantMass);
     }
 
