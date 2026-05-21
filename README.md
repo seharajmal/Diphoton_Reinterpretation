@@ -9,5 +9,6 @@ with Madanalysis: https://github.com/MadAnalysis
 
 2)  .info file : contains Data and Standard Model background information and later this is used to calculate limits
 
-3) 
+3)  .h file :  its the C++ header file
 
+4)  delphes.tcl : Contains detector information from analysis
