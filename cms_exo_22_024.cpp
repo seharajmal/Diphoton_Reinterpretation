@@ -120,7 +120,7 @@ double PhotonCorrectionFactor(const RecPhotonFormat* photon)
 
 // -----------------------------------------------------------------------
 // Per-photon reconstruction efficiency.
-// Barrel: 90%,  Endcap: 82%,  Gap/outside: 0 (photon rejected upstream).
+// Barrel: 90%,  Endcap: 82%,  Gap/outside: 0 (photon rejected).
 // -----------------------------------------------------------------------
 double RecoEfficiencyWeight(const RecPhotonFormat* photon)
 {
