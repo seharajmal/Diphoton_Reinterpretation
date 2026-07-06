@@ -19,7 +19,7 @@ with Madanalysis: https://github.com/MadAnalysis
 ./bin/ma5 It will check if everything is okay.
 
 - Type these commands one by one to get the packages you need:
-  ```bash
+  
   install zlib
   
 install fastjet
@@ -29,7 +29,7 @@ install delphes
 install PAD 
   
 install PADForMA5tune
-  ```
+ 
 - If Root is not set up on your computer, also type:
 install root
 
