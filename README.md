@@ -46,6 +46,31 @@ make
 
 Now PAD executable is being created. 
 
+# Validation
+For validation of the analysis implementation, signal samples must be produced using the identical settings as the original analysis. The generation code (which produces HepMC files) is provided in the Validation_material folder. Before running, be sure to modify the number of events, cross-section, mass, and width to match those used in the analysis. For the diphoton final state, pre-existing samples are available at the following link: https://cms-pdmv-prod.web.cern.ch/mcm/requests?tags=EXO-Camilo-0011&page=0&shown=127
+
+## Setup
+
+- Install [Pythia8](https://pythia.org/)
+- Install [LHAPDF](https://www.lhapdf.org/) with Pythia support
+- Build HepMC:
+  ```bash
+  cmake -DCMAKE_INSTALL_PREFIX=../ -Dmomentum:STRING=GEV -Dlength:STRING=CM ../hepmc2.06.09 && make && make install
+  ```
+- Configure Pythia:
+  ```bash
+  ./configure --with-hepmc2=../ --with-lhapdf6=../LHAPDF-6.5.5
+  ```
+- Install PDF:
+  ```bash
+  lhapdf install NNPDF23_lo_as_0119_qed
+  ```
+- Export paths and compile:
+  ```bash
+  export LD_LIBRARY_PATH=/home/debian/pythia8316/lib:/home/debian/lib:$LD_LIBRARY_PATH
+  g++ -o generate_ggH_standalone generate_ggH_standalone.cc -I/home/debian/pythia8316/include -I/home/debian/include -L/home/debian/pythia8316/lib -L/home/debian/lib -lpythia8 -lHepMC -ldl -std=c++11 -O2 -Wno-deprecated-declarations -Wl,-rpath,/home/debian/pythia8316/lib:/home/debian/lib
+  ```
+```
 
 
 
