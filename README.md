@@ -70,7 +70,7 @@ For validation of the analysis implementation, signal samples must be produced u
   export LD_LIBRARY_PATH=/home/debian/pythia8316/lib:/home/debian/lib:$LD_LIBRARY_PATH
   g++ -o generate_ggH_standalone generate_ggH_standalone.cc -I/home/debian/pythia8316/include -I/home/debian/include -L/home/debian/pythia8316/lib -L/home/debian/lib -lpythia8 -lHepMC -ldl -std=c++11 -O2 -Wno-deprecated-declarations -Wl,-rpath,/home/debian/pythia8316/lib:/home/debian/lib
   ```
-```
+
 
 
 
