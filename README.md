@@ -20,7 +20,7 @@ with Madanalysis: https://github.com/MadAnalysis
 
 - Type these commands one by one to get the packages you need:
   ```bash
-install zlib
+  install zlib
   ```
     ```bash
 install fastjet
