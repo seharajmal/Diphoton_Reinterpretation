@@ -21,17 +21,13 @@ with Madanalysis: https://github.com/MadAnalysis
 - Type these commands one by one to get the packages you need:
   ```bash
   install zlib
-  ```
-    ```bash
+  
 install fastjet
-  ```
-    ```bash
+  
 install delphes
-  ```
-  ```bash
+  
 install PAD 
-  ```
-    ```bash
+  
 install PADForMA5tune
   ```
 - If Root is not set up on your computer, also type:
