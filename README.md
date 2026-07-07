@@ -70,8 +70,9 @@ For validation of the analysis implementation, signal samples must be produced u
   export LD_LIBRARY_PATH=/home/debian/pythia8316/lib:/home/debian/lib:$LD_LIBRARY_PATH
   g++ -o generate_ggH_standalone generate_ggH_standalone.cc -I/home/debian/pythia8316/include -I/home/debian/include -L/home/debian/pythia8316/lib -L/home/debian/lib -lpythia8 -lHepMC -ldl -std=c++11 -O2 -Wno-deprecated-declarations -Wl,-rpath,/home/debian/pythia8316/lib:/home/debian/lib
   ```
-
-
+## Running analysis on samples 
+- Once Pythia samples are produced, use them as input for reinterpretation studies with MadAnalysis 5
+- Refer to Section 5 ("Using MadAnalysis 5 for reinterpreting LHC results") of the official documentation: https://arxiv.org/pdf/1808.00480
 
 
 
