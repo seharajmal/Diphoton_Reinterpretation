@@ -17,15 +17,16 @@ set ExecutionPath {
  
   ECal
   HCal
- 
+
+  ElectronFilter
+
   Calorimeter
   EFlowMerger
   EFlowFilter
-  
+
   PhotonEfficiency
   PhotonIsolation
 
-  ElectronFilter
   ElectronEfficiency
   ElectronIsolation
 
@@ -413,7 +414,6 @@ module PdgCodeFilter ChargedHadronFilter {
   add PdgCode {-13}
 }
 
-
 ###################################################
 # Tower Merger (in case not using e-flow algorithm)
 ###################################################
@@ -426,10 +426,9 @@ module Merger Calorimeter {
 }
 
 
-
-####################
+#############################################
 # Energy flow merger
-####################
+#############################################
 
 module Merger EFlowMerger {
 # add InputArray InputArray
@@ -451,8 +450,8 @@ module PdgCodeFilter EFlowFilter {
   add PdgCode {-11}
   add PdgCode {13}
   add PdgCode {-13}
+ 
 }
-
 
 ###################
 # Photon efficiency
@@ -465,10 +464,24 @@ module Efficiency PhotonEfficiency {
   # set EfficiencyFormula {efficiency formula as a function of eta and pt}
 
   # efficiency formula for photons
-  set EfficiencyFormula {                                      (pt <= 10.0) * (0.00) +
-                                           (abs(eta) <= 1.4442) * (pt > 10.0)  * (1.00) +
-                         (abs(eta) > 1.566 && abs(eta) <= 2.5) * (pt > 10.0)  * (1.00) +
-                         (abs(eta) > 2.5)                                   * (0.00)}
+  #
+  # NOTE: the high-pT-ID proxy (0.90 EB / 0.82 EE, standing in for the
+  # R9 + sigmaIetaIeta shower-shape cuts Delphes cannot simulate) used to
+  # live here as a stochastic per-object accept/reject applied to every
+  # candidate with pT>10 GeV, well upstream of the analysis pT>125 GeV cut
+  # and the leading/subleading ranking. It has been moved into
+  # cms_exo_22_024.cpp as a deterministic event weight applied specifically
+  # to the two selected leading/subleading photons, after the kinematic
+  # selection, matching the AN's cut ordering (pT/eta, then ID) and
+  # preserving full MC statistics instead of randomly discarding events.
+  # Only basic reconstruction acceptance (pT>10 GeV, in-acceptance eta) is
+  # applied at this stage.
+  set EfficiencyFormula {
+        (pt <= 10.0)                                         * (0.00) +
+        (abs(eta) < 1.4442)              * (pt > 10.0)        * (1.00) +
+        (abs(eta) > 1.566 && abs(eta) < 2.5) * (pt > 10.0)  * (1.00) +
+        (abs(eta) >= 2.5)                                    * (0.00)
+    }
 }
 
 ##################
@@ -768,8 +781,16 @@ module TauTagging TauTagging {
 module UniqueObjectFinder UniqueObjectFinder {
 # earlier arrays take precedence over later ones
 # add InputArray InputArray OutputArray
-  add InputArray PhotonIsolation/photons photons
+#
+# Electrons are listed before photons so that a candidate reconstructed as
+# both an electron and a photon (spatially overlapping) is kept as an
+# electron and removed from the photon collection. This implements the
+# electron veto at the Delphes level; with the previous ordering (photons
+# first) the overlapping electron was silently discarded instead, which
+# defeated the electron-veto check in the analysis code since it never
+# saw the electron to veto against.
   add InputArray ElectronIsolation/electrons electrons
+  add InputArray PhotonIsolation/photons photons
   add InputArray MuonIsolation/muons muons
   add InputArray JetEnergyScale/jets jets
 }
@@ -786,7 +807,7 @@ module TreeWriter TreeWriter {
 # add Branch InputArray BranchName BranchClass
   add Branch Delphes/allParticles Particle GenParticle
 
-  add Branch TrackMerger/tracks Track Track
+ add Branch TrackMerger/tracks Track Track
   add Branch Calorimeter/towers Tower Tower
 
   add Branch HCal/eflowTracks EFlowTrack Track

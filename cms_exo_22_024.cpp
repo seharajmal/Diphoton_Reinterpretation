@@ -4,15 +4,8 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
-#include <random>
-
 using namespace MA5;
 using namespace std;
-
-// Global random generator for smearing
-static std::random_device rd;
-static std::mt19937 gen(rd());
-static std::uniform_real_distribution<> dis(0, 1);
 
 bool cms_exo_22_024::Initialize(const Configuration& cfg, const std::map<std::string,std::string>& parameters)
 {
@@ -71,6 +64,8 @@ bool cms_exo_22_024::Initialize(const Configuration& cfg, const std::map<std::st
     Manager()->AddHisto("photon_eta_all",      50, -2.5, 2.5);
     Manager()->AddHisto("photon_pt_afterID",  100, 0, 1000);
     Manager()->AddHisto("photon_eta_afterID",  50, -2.5, 2.5);
+    // Diagnostic only: raw mgg
+    Manager()->AddHisto("mgg_preselection", 40, 0, 2000);
 
     cout << "END Initialization" << endl;
     return true;
@@ -95,46 +90,15 @@ double CalculateDeltaR(double eta1, double phi1, double eta2, double phi2)
 }
 
 // -----------------------------------------------------------------------
-// Photon energy correction: 0.5% scale + Gaussian smearing
+// High-pT photon ID efficiency proxy for R9 + sigmaIetaIeta
 // -----------------------------------------------------------------------
-double PhotonCorrectionFactor(const RecPhotonFormat* photon)
+double PhotonIDEfficiencyFactor(bool isEB)
 {
-    double abseta = std::fabs(photon->eta());
-
-    // Base scale correction from Z->ee calibration
-    double scale = 1.005;
-
-    // Additional Gaussian smearing (sigma depends on eta region)
-    double smear_sigma = 0.0;
-    if (abseta < 1.44) {
-        smear_sigma = 0.008 + dis(gen) * 0.007;   // 0.8-1.5% EB
-    } else if (abseta > 1.57 && abseta < 2.5) {
-        smear_sigma = 0.02  + dis(gen) * 0.005;   // 2.0-2.5% EE
-    } else {
-        return scale;  // gap region
-    }
-
-    std::normal_distribution<> gauss(1.0, smear_sigma);
-    return scale * gauss(gen);
-}
-
-// -----------------------------------------------------------------------
-// Per-photon reconstruction efficiency.
-// Barrel: 90%,  Endcap: 82%,  Gap/outside: 0 (photon rejected).
-// -----------------------------------------------------------------------
-double RecoEfficiencyWeight(const RecPhotonFormat* photon)
-{
-    double abseta = std::fabs(photon->eta());
-    if      (abseta < 1.44)                      return 0.90;
-    else if (abseta > 1.57 && abseta < 2.5)      return 0.82;
-    else                                          return 0.0;
+    return isEB ? 0.90 : 0.82;
 }
 
 // -----------------------------------------------------------------------
 // Photon ID
-//   - H/E < 5%
-//   - Charged-hadron isolation < 5.0 GeV
-//   - Photon isolation < 2.75 GeV (EB) or < 2.00 GeV (EE)
 // -----------------------------------------------------------------------
 bool ApplyPhotonID(const RecPhotonFormat& photon, bool isEB, const EventFormat& event)
 {
@@ -142,14 +106,31 @@ bool ApplyPhotonID(const RecPhotonFormat& photon, bool isEB, const EventFormat& 
     if (photon.HEoverEE() >= 0.05)
         return false;
 
-    // 2. Charged-hadron isolation < 5.0 GeV
-    double chiso = PHYSICS->Isol->tracker->sumIsolation(&photon, event.rec(), 0.3, 0.);
+    // 2. Electron veto
+    if (event.rec() != nullptr)
+    {
+        const double dRElectronVeto = 0.1;
+        for (const auto& el : event.rec()->electrons())
+        {
+            double dR = CalculateDeltaR(photon.eta(), photon.phi(), el.eta(), el.phi());
+            if (dR < dRElectronVeto)
+                return false;
+        }
+    }
+
+    // 3. Charged-hadron isolation < 5.0 GeV
+    double chiso = PHYSICS->Isol->eflow->sumIsolation(&photon, event.rec(), 0.3, 0.5,
+                                                       IsolationEFlow::TRACK_COMPONENT);
     if (chiso >= 5.0)
         return false;
 
-    // 3. Photon isolation: 2.75 GeV (EB) or 2.00 GeV (EE)
-    double phiso = PHYSICS->Isol->calorimeter->sumIsolation(&photon, event.rec(), 0.3, 0.);
-    if (isEB  && phiso >= 2.75) return false;
+    // 4. Photon isolation: 2.75 GeV (EB) or 2.00 GeV (EE)
+    double phiso = PHYSICS->Isol->eflow->sumIsolation(&photon, event.rec(), 0.3, 0.5,
+                                                       IsolationEFlow::PHOTON_COMPONENT);
+    phiso -= photon.pt();
+    if (phiso < 0.0) phiso = 0.0;
+
+    if (isEB && phiso >= 2.75) return false;
     if (!isEB && phiso >= 2.00) return false;
 
     return true;
@@ -165,6 +146,8 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
         if (event.mc() == nullptr || event.mc()->weight() == 0.0) return false;
         myWeight = event.mc()->weight();
     }
+    
+    Manager()->SetCurrentEventWeight(myWeight);
     Manager()->InitializeForNewEvent(myWeight);
 
     // ---- Collect all photons ----
@@ -178,117 +161,110 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
         Manager()->FillHisto("photon_eta_all", ph->eta());
     }
 
+    // Diagnostic only: raw mgg
+    if (allPhotons.size() >= 2)
+    {
+        std::vector<const RecPhotonFormat*> sortedAll = allPhotons;
+        std::sort(sortedAll.begin(), sortedAll.end(),
+                  [](const RecPhotonFormat* a, const RecPhotonFormat* b){
+                      return a->pt() > b->pt();
+                  });
+        MALorentzVector rawSystem = sortedAll[0]->momentum() + sortedAll[1]->momentum();
+        Manager()->FillHisto("mgg_preselection", rawSystem.M());
+    }
+
     // ================================================================
     // CUT 1: At least 2 photons
     // ================================================================
-    if (event.rec() == nullptr || event.rec()->photons().size() < 2)
-        return true;
-    if (!Manager()->ApplyCut(true, "At least 2 photons")) return true;
+    if (!Manager()->ApplyCut(allPhotons.size() >= 2, "At least 2 photons")) return true;
 
     // ================================================================
-    // CUT 2: pT > 125 GeV, |eta| < 2.5  (excluding gap 1.44-1.57)
+    // CUT 2: pT > 125 GeV, |eta| < 2.5
     // ================================================================
-    
-    struct PhotonWithCorr {
+
+    struct PhotonCand {
         const RecPhotonFormat* ph;
-        MALorentzVector mom;   // corrected 4-vector
-        double corrPt;
+        MALorentzVector mom;
+        double pt;
         bool isEB;
     };
 
-    std::vector<PhotonWithCorr> corrCandidates;
+    std::vector<PhotonCand> corrCandidates;
     for (const auto& ph : allPhotons)
     {
         double abseta = std::fabs(ph->eta());
-        if (abseta > 2.5)           continue;  // outside acceptance
-        if (abseta > 1.44 && abseta < 1.57) continue;  // gap region
+        if (abseta > 2.5) continue;
+        if (abseta > 1.4442 && abseta < 1.566) continue;
 
-        double factor = PhotonCorrectionFactor(ph);
         MALorentzVector mom = ph->momentum();
-        mom *= factor;
-        double corrPt = mom.Pt();
+        double pt = mom.Pt();
 
-        if (corrPt < 125.0) continue;
+        if (pt < 125.0) continue;
 
-        PhotonWithCorr pwc;
-        pwc.ph     = ph;
-        pwc.mom    = mom;
-        pwc.corrPt = corrPt;
-        pwc.isEB   = (abseta < 1.44);
-        corrCandidates.push_back(pwc);
+        PhotonCand pc;
+        pc.ph   = ph;
+        pc.mom  = mom;
+        pc.pt   = pt;
+        pc.isEB = (abseta < 1.4442);
+        corrCandidates.push_back(pc);
     }
 
-    if (corrCandidates.size() < 2) return true;
-    if (!Manager()->ApplyCut(true, "Photon pT > 125 GeV & |eta| < 2.5")) return true;
+    if (!Manager()->ApplyCut(corrCandidates.size() >= 2, "Photon pT > 125 GeV & |eta| < 2.5")) return true;
 
-    // ================================================================
-    // Reconstruction efficiency
-    // =====================================
-    // CUT 3: Photon ID
-    // ================================================================
-    std::vector<PhotonWithCorr> idCandidates;
-    for (const auto& pwc : corrCandidates)
-    {
-        if (ApplyPhotonID(*pwc.ph, pwc.isEB, event))
-            idCandidates.push_back(pwc);
-    }
-
-    if (idCandidates.size() < 2) return true;
-    if (!Manager()->ApplyCut(true, "Photon ID selection")) return true;
-
-    // Sort by corrected pT and pick the two leading
-    std::sort(idCandidates.begin(), idCandidates.end(),
-              [](const PhotonWithCorr& a, const PhotonWithCorr& b){
-                  return a.corrPt > b.corrPt;
+    // Pick the two leading-pT candidates
+    std::sort(corrCandidates.begin(), corrCandidates.end(),
+              [](const PhotonCand& a, const PhotonCand& b){
+                  return a.pt > b.pt;
               });
 
-    const PhotonWithCorr& lead    = idCandidates[0];
-    const PhotonWithCorr& sublead = idCandidates[1];
+    const PhotonCand& lead    = corrCandidates[0];
+    const PhotonCand& sublead = corrCandidates[1];
 
-    // Apply per-photon reco efficiency as a weight
-    double recoEff = RecoEfficiencyWeight(lead.ph) * RecoEfficiencyWeight(sublead.ph);
-    Manager()->SetCurrentEventWeight(myWeight * recoEff);
+    // ================================================================
+    // CUT 3: Photon ID
+    // ================================================================
+    bool leadPassesID    = ApplyPhotonID(*lead.ph,    lead.isEB,    event);
+    bool subleadPassesID = ApplyPhotonID(*sublead.ph, sublead.isEB, event);
+    bool passesID = leadPassesID && subleadPassesID;
+
+    double idWeight = Manager()->GetCurrentEventWeight() * PhotonIDEfficiencyFactor(lead.isEB)
+                                                     * PhotonIDEfficiencyFactor(sublead.isEB);
+    Manager()->SetCurrentEventWeight(idWeight);
+
+    if (!Manager()->ApplyCut(passesID, "Photon ID selection")) return true;
 
     // Fill post-ID histograms
-    Manager()->FillHisto("photon_pt_afterID",  lead.corrPt);
-    Manager()->FillHisto("photon_pt_afterID",  sublead.corrPt);
+    Manager()->FillHisto("photon_pt_afterID",  lead.pt);
+    Manager()->FillHisto("photon_pt_afterID",  sublead.pt);
     Manager()->FillHisto("photon_eta_afterID", lead.ph->eta());
     Manager()->FillHisto("photon_eta_afterID", sublead.ph->eta());
 
-    // Invariant mass from corrected 4-vectors
+    // Invariant mass
     MALorentzVector system = lead.mom + sublead.mom;
     double invariantMass   = system.M();
 
     // ================================================================
     // CUT 4: EBEB || EBEE
     // ================================================================
-    bool leadEB    = lead.isEB;
-    bool subleadEB = sublead.isEB;
-    bool leadEE    = !lead.isEB;
-    bool subleadEE = !sublead.isEB;
+    bool passesEBEB = (lead.isEB && sublead.isEB);
+    bool passesEBEE = ((lead.isEB && !sublead.isEB) || (!lead.isEB && sublead.isEB));
 
-    bool passesEBEB = (leadEB   && subleadEB);
-    bool passesEBEE = ((leadEB  && subleadEE) || (leadEE && subleadEB));
-
-    if (!passesEBEB && !passesEBEE) return true;
-    if (!Manager()->ApplyCut(true, "EBEB||EBEE")) return true;
+    if (!Manager()->ApplyCut(passesEBEB || passesEBEE, "EBEB||EBEE")) return true;
 
     // ================================================================
     // CUT 5: mgg > 500 GeV
     // ================================================================
-    if (invariantMass <= 500.0) return true;
-    if (!Manager()->ApplyCut(true, "Mgg > 500GeV")) return true;
+    if (!Manager()->ApplyCut(invariantMass > 500.0, "Mgg > 500GeV")) return true;
 
     // ================================================================
     // CUT 6: DeltaR > 0.45
     // ================================================================
     double deltaR = CalculateDeltaR(lead.ph->eta(), lead.ph->phi(),
                                     sublead.ph->eta(), sublead.ph->phi());
-    if (deltaR <= 0.45) return true;
-    if (!Manager()->ApplyCut(true, "DeltaR > 0.45")) return true;
+    if (!Manager()->ApplyCut(deltaR > 0.45, "DeltaR > 0.45")) return true;
 
     // ================================================================
-    // Mass bin assignment (100 GeV bins, 500-3600 GeV, overflow -> bin 31)
+    // Mass bin assignment
     // ================================================================
     int mass_bin = static_cast<int>((invariantMass - 500.0) / 100.0) + 1;
     if (mass_bin < 1)  mass_bin = 1;
@@ -307,7 +283,7 @@ bool cms_exo_22_024::Execute(SampleFormat& sample, const EventFormat& event)
     if (passesEBEE)
     {
         std::string cut_name = "Mass bin " + std::to_string(mass_bin) + " EBEE";
-        Manager()->ApplyCut(true, cut_name);   
+        Manager()->ApplyCut(true, cut_name);
         Manager()->FillHisto("mgg_EBEE", invariantMass);
     }
 
