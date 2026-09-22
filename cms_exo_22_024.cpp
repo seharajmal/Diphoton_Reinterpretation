@@ -90,7 +90,7 @@ double CalculateDeltaR(double eta1, double phi1, double eta2, double phi2)
 }
 
 // -----------------------------------------------------------------------
-// High-pT photon ID efficiency proxy for R9 + sigmaIetaIeta
+// High-pT photon ID efficiency 
 // -----------------------------------------------------------------------
 double PhotonIDEfficiencyFactor(bool isEB)
 {
